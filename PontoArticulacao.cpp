@@ -3,13 +3,12 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include <conio2.h>
-#define TF 50
+#include <windows.h>
+#include <limits.h>
 #include "TADPilha.h"
+#include <conio2.h>
 
-//STRUCT LISTA --------------------------------------------------------------------------------------
-
-
+#define TF 50
 
 //FUNCOES PARA LISTA DE ADJACENCIA ----------------------------------------------------------------------------------
 void lerTxtListaAdjacencia(ListaAdjacencia **lista)
@@ -55,7 +54,7 @@ void lerTxtListaAdjacencia(ListaAdjacencia **lista)
 void exibirListaAdjacencia(ListaAdjacencia * lista)
 {
 	ListaAdjacencia *auxVert, *auxHori;
-	//clrscr();
+	//system("cls");//clrscr();
 	auxVert = lista;
 	//descer verticalmente
 	while(auxVert != NULL)
@@ -101,6 +100,7 @@ char existeOrigemDestinoLista(ListaAdjacencia * lista, char origem, char destino
 void formarVetorVisitadosZerado(InfoNo * visitados[], ListaAdjacencia * lista, int *qtdeVertices){
 	int i=0;
 	InfoNo *novo;
+    *qtdeVertices = 0; //evita erros se chamada mais de uma vez
 	
 	while(lista){
 		novo = NCInfoNO();
@@ -109,8 +109,21 @@ void formarVetorVisitadosZerado(InfoNo * visitados[], ListaAdjacencia * lista, i
 		*qtdeVertices = *qtdeVertices + 1;
 		lista = lista->head;
 	}
-
 }
+
+void liberarMemVetorVisit(InfoNo * visitados[]){
+    int quant, pos=0;
+    InfoNo * aux, * liberar;
+
+    aux = visitados[pos];
+    while(aux != NULL){
+        liberar = aux;
+        pos++;
+        aux = visitados[pos];
+        free(liberar);
+    }
+}
+
 int verificarVisitado(InfoNo * visitados[], char vertice, int qtdeVertices)
 {
     for (int i = 0; i < qtdeVertices; i++)
@@ -119,8 +132,8 @@ int verificarVisitado(InfoNo * visitados[], char vertice, int qtdeVertices)
             return -1;
     }
     return 1;
-
 }
+
 void marcarVisitado(InfoNo * visitados[], char vertice, int qtdeVertices, int cont)
 {
     for (int i = 0; i < qtdeVertices; i++)
@@ -128,15 +141,15 @@ void marcarVisitado(InfoNo * visitados[], char vertice, int qtdeVertices, int co
         if(visitados[i]->vertice == vertice) 
             visitados[i]->ordemVisita = cont;
     }
-
 }
+
 void buscaPosicao (ListaAdjacencia **aux, ListaAdjacencia *listaOriginal, char vertice)
 {
-	while(listaOriginal != NULL && listaOriginal->vertice != vertice)	
+	while(listaOriginal != NULL && listaOriginal->vertice != vertice)
 		listaOriginal = listaOriginal->head;
 	*aux = listaOriginal;
-	
 }
+
 void formarArvore(ListaAdjacencia *lista, ListaAdjacencia **arvore, InfoNo *visitados[], int qtdeVertices)
 {
     ListaAdjacencia *no, *noPai;
@@ -163,7 +176,7 @@ void formarArvore(ListaAdjacencia *lista, ListaAdjacencia **arvore, InfoNo *visi
         }
         
         marcarVisitado(visitados, no->vertice, qtdeVertices, cont);
-        printf("Visitando %c (ordem %d)\n", no->vertice, cont);
+        //printf("Visitando %c (ordem %d)\n", no->vertice, cont);
 		cont++;
        	while(no != NULL && verificarVisitado(visitados, no->vertice, qtdeVertices) == -1)
        		no = no->tail;
@@ -176,6 +189,7 @@ void formarArvore(ListaAdjacencia *lista, ListaAdjacencia **arvore, InfoNo *visi
     }
 			    
 }
+
 int contaNos(ListaAdjacencia * lista){
 	int i = 0;
 	
@@ -222,141 +236,6 @@ int charParaIndice(char c) {
     }
 }
 
-void DFS_Articulacao(int indice, int ordem[], int menor[], int pai[], int marcado[], char articulacao[], ListaAdjacencia * arvore, ListaAdjacencia * pontilhado) {
-    int filhos = 0;
-    int indiceVizinho;
-    ListaAdjacencia *auxArvore, *auxPont;
-
-    marcado[indice] = 1;
-    menor[indice] = ordem[indice];
-
-    auxArvore = arvore;
-    for(int i=0; i<indice; i++){
-        auxArvore = auxArvore->head;
-    }
-    auxArvore = auxArvore->tail;
-    //percorre vizinhos na árvore
-    while (auxArvore != NULL) {
-        indiceVizinho = charParaIndice(auxArvore->vertice);
-
-        if (!marcado[indiceVizinho]) {
-            pai[indiceVizinho] = indice;
-            filhos++;
-
-            DFS_Articulacao(indiceVizinho, ordem, menor, pai, marcado, articulacao, arvore, pontilhado);
-
-            if(menor[indice] < menor[indiceVizinho])
-                menor[indice] = menor[indice];
-            else
-                menor[indice] = menor[indiceVizinho];
-
-            if (pai[indice] == -1 && filhos > 1)
-                articulacao[indice] = 1;
-
-            if (pai[indice] != -1 && menor[indiceVizinho] >= ordem[indice])
-                articulacao[indice] = 1;
-
-        } else if (indiceVizinho != pai[indice]) {
-            if(menor[indice] < ordem[indiceVizinho])
-                menor[indice] = menor[indice];
-            else
-                menor[indice] = ordem[indiceVizinho];
-        }
-
-        auxArvore = auxArvore->tail;
-    }
-
-    auxPont = pontilhado;
-    for(int i=0; i<indice; i++){
-        auxPont = auxPont->head;
-    }
-    auxPont = auxPont->tail;
-    // percorre vizinhos no pontilhado
-    while (auxPont != NULL) {
-        indiceVizinho = charParaIndice(auxPont->vertice);
-        if(menor[indice] < ordem[indiceVizinho])
-            menor[indice] = menor[indice];
-        else
-            menor[indice] = ordem[indiceVizinho];
-        auxPont = auxPont->tail;
-    }
-}
-
-void buscaProfundidadeArticulacao(ListaAdjacencia * arvore, ListaAdjacencia * pontilhado, InfoNo * visitados[], int quantNos)
-{
-    int ordem[quantNos], menor[quantNos], pai[quantNos], marcado[quantNos], indice;
-    char articulacao[quantNos]; //vetor de 0 ou 1, para verdadeiro ou falso
-
-    //preencher o vetor de ordem de visita
-    for(int i=0; i<quantNos; i++)
-	{
-        ordem[i] = visitados[i]->ordemVisita;
-    }
-
-    // para cada nó u em grafo:
-    //     marcado[u] = falso
-    //     pai[u] = NULL
-    //     articulacao[u] = falso
-    ListaAdjacencia * auxArvore = arvore;
-    while(auxArvore != NULL){
-        indice = charParaIndice(auxArvore->vertice);
-        marcado[indice] = 0;
-        pai[indice] = -1;
-        articulacao[indice] = 0;
-        menor[indice] = ordem[indice];
-
-        auxArvore = auxArvore->head;
-    }
-
-    // para cada nó u em grafo:
-    //     se não visitado[u]:
-    //         DFS_Articulacao(u)
-    auxArvore = arvore;
-    while(auxArvore != NULL)
-	{
-        indice = charParaIndice(auxArvore->vertice);
-        if(!marcado[indice])
-		{ //se ele não está marcado
-            DFS_Articulacao(indice, ordem, menor, pai, marcado, articulacao, arvore, pontilhado);
-        }
-        
-        auxArvore = auxArvore->head;
-    }
-
-    // para cada nó u em grafo:
-    //     se articulacao[u]:
-    //         imprimir(u, "é ponto de articulação")
-    auxArvore = arvore;
-    while(auxArvore != NULL){ //exibição dos pontos que são articulação
-        indice = charParaIndice(auxArvore->vertice);
-        if(articulacao[indice] == 1){
-            printf("O vertice %c eh ponto de articulacao!!\n", auxArvore->vertice);
-        }
-
-        auxArvore = auxArvore->head;
-    }
-}
-
-//void acharPontosArticulacao(ListaAdjacencia * lista){
-//	ListaAdjacencia *arvore = NULL, *pontilhado = NULL;
-//	int quantNos = contaNos(lista); //conta a quantidade de nos do meu grafo
-//	InfoNo * visitados[quantNos]; //o vetor que ir? armazenar a ordem das visitas dos Nos
-//	
-//	formarVetorVisitadosZerado(visitados,lista); //deixar o vetor de visitados zerado, ou seja, ningu?m ainda foi visitado pois n?o criei a arvore ainda
-//	arvore = formarArvore(lista, visitados); //formar a arvore para realizar a busca em profundidade e marcar os visitados cada qual com sua ordem
-//	pontilhado = formarPontilhado(lista, arvore); //esse algoritmo subtrai a lista pela arvore, gerando assim as liga??es pontilhadas
-//	
-//	exibir as listas geradas
-//	exibirListaAdjacencia(lista);
-//	exibirListaAdjacencia(arvore);
-//	exibirListaAdjacencia(pontilhado);
-
-//	agora com o vetor com a ordem dos visitados...
-//	com a arvore formada...
-//	e com o back (pontilhado) formado... posso agora fazer a busca em profundidade
-//	buscaProfundidadeArticulacao(arvore, pontilhado, visitados, quantNos);
-//}
-
 void exibirArvore(ListaAdjacencia *arvore)
 {
 	ListaAdjacencia *cauda;
@@ -388,21 +267,154 @@ void imprimirVisitados(InfoNo *visitados[], int qtdeVertices)
     printf("\n");
 }
 
-//OUTRAS FUNCOES ---------------------------------------------------------------------------------------------------
+//REALIZAR DE FATO A BUSCA PELOS PONTOS DE ARTICULAÇÃO -------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
 void continuar(){
-	printf("\n\nPressione qualquer tecla para continuar...");
-	getchar();
+	printf("\n\nPressione qualquer tecla para continuar...\n");
+	getch();
 }
 
+char isRaiz(ListaAdjacencia * arvore, ListaAdjacencia * ponteiro)
+{
+	if(arvore != NULL && arvore->vertice == ponteiro->vertice)
+		return 1; //o ponteiro é a raiz
+	return 0;
+}
+
+int filhosNoArvore(ListaAdjacencia * no, InfoNo * visitados[]) //lembrando que esse no é da minha arvore
+{
+	int filhos = 0, indice;
+	
+	no = no->tail;
+	while(no != NULL)
+	{
+		indice = charParaIndice(no->vertice);
+		if(visitados[indice]->ordemVisita == 0)
+			filhos++;
+		
+		no = no->tail;
+	}
+	return filhos;
+}
+
+int ordemNo(InfoNo * visitados[], ListaAdjacencia * no)
+{
+	int indice = charParaIndice(no->vertice);
+	return visitados[indice]->ordemVisita;
+}
+
+int menorBack(ListaAdjacencia *no, ListaAdjacencia *pontilhado, InfoNo *visitados[])
+{
+    ListaAdjacencia *aux = pontilhado;
+    int menor = INT_MAX;
+
+    while (aux != NULL && aux->vertice != no->vertice)
+        aux = aux->head;
+
+    if (aux != NULL) // vértice possui pelo menos 1 valor de retorno
+    {
+        aux = aux->tail;
+        while (aux != NULL)
+        {
+            int indice = charParaIndice(aux->vertice);
+            if (visitados[indice]->ordemVisita < menor &&
+                visitados[indice]->ordemVisita > 0)
+            {
+                menor = visitados[indice]->ordemVisita;
+            }
+            aux = aux->tail;
+        }
+    }
+
+    if (menor < INT_MAX)
+        return menor;
+    return -1;
+}
+
+void marcarVisitado(InfoNo * visitados[], char vertice, int ordem)
+{
+	int indice = charParaIndice(vertice);
+	visitados[indice]->ordemVisita = ordem;
+}
+
+//busca de fato
+int buscaArticulacao(ListaAdjacencia *no, ListaAdjacencia *arvore, ListaAdjacencia *grafo, ListaAdjacencia *pontilhado, InfoNo *visitados[], int *ordem, char pai, int qtdeVertices)
+{
+    int back, backFilho;
+    int filhos = 0;
+    ListaAdjacencia *adj;   // percorre as adjacências (uso do campo tail)
+    ListaAdjacencia *viz;   // nó do grafo correspondente ao adj->vertice
+
+    /* primeira chamada: usa o primeiro vértice do grafo se no == NULL */
+    if (no == NULL)
+        no = grafo; /* grafo deve apontar para o primeiro vértice */
+
+    /* marca o vértice (discovery time) */
+    marcarVisitado(visitados, no->vertice, (*ordem)++);
+    
+    /* inicializa 'back' com o menor valor obtido pelas arestas de retorno do próprio nó */
+    back = menorBack(no, pontilhado, visitados);
+    if (back == -1 || back > visitados[charParaIndice(no->vertice)]->ordemVisita)
+        back = visitados[charParaIndice(no->vertice)]->ordemVisita;
+
+    /* percorre TODAS as adjacências do vértice 'no' (usando tail como encadeamento de vizinhos) */
+    adj = no->tail; 
+    while (adj != NULL)
+    {
+        /* encontra o nó principal do grafo relativo ao caractere do vizinho */
+        buscaPosicao(&viz, grafo, adj->vertice);
+        if (viz != NULL)
+        {
+            /* se não visitado => é filho na DFS */
+            if (verificarVisitado(visitados, viz->vertice, qtdeVertices) == 1)
+            {
+                filhos++;
+
+                /* chamada recursiva; passa 'no->vertice' como pai do filho */
+                backFilho = buscaArticulacao(viz, arvore, grafo, pontilhado, visitados, ordem, no->vertice, qtdeVertices);
+
+                /* condição de articulação para vértice não-raiz */
+                if (!isRaiz(arvore, no) &&
+                    backFilho >= visitados[charParaIndice(no->vertice)]->ordemVisita)
+                {
+                    printf("O vertice %c eh um ponto de articulacao!!\n", no->vertice);
+                    continuar();
+                }
+
+                /* atualiza low[u] */
+                if (backFilho < back)
+                    back = backFilho;
+            }
+            /* se já visitado e não é o pai -> poderia atualizar 'back',
+               mas isso já é tratado em menorBack() */
+        }
+
+        adj = adj->tail; /* próximo vizinho */
+    }
+
+    /* regra da raiz: se é raiz da árvore DFS e tem mais de 1 filho */
+    if (isRaiz(arvore, no) && filhos > 1)
+    {
+        printf("O vertice %c eh um ponto de articulacao!!\n", no->vertice);
+        continuar();
+    }
+
+    return back;
+}
+//FIM DA BUSCA EM PROFUNDIDADE -------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------
+
+//OUTRAS FUNCOES ---------------------------------------------------------------------------------------------------
 char menu (void)
 {
-	
-	printf("[A] - Ponto de Articulacao\n");
+	printf("[A] - Formar estrutura (arvore e pontilhado)\n");
     printf("[B] - Exibir Lista de Adjacencia\n");
+    printf("[C] - Busca ponto de articulacao\n");
 	printf ("[ESC] - Sair\n");
 	
 	return toupper(getch());
 }
+
 void executar(void)
 {
     ListaAdjacencia *lista = NULL;
@@ -410,38 +422,52 @@ void executar(void)
     lerTxtListaAdjacencia(&lista);
     ListaAdjacencia *arvore = NULL;
     InfoNo *visitados[50];
-    int qtdeVertices = 0;
+    int qtdeVertices = 0, ordem;
     char op;
     do
     {
+        system("cls");//clrscr();
     	op = menu();
         
         switch(op)
         {
-            case 'A':
-            clrscr();
-            formarVetorVisitadosZerado(visitados, lista, &qtdeVertices);
-            formarArvore(lista, &arvore, visitados, qtdeVertices);
-            //imprimirVisitados(visitados, qtdeVertices);	
-            printf ("\nEXIBINDO LISTA ADJACENCIA\n");
-            exibirListaAdjacencia(lista);
-            printf ("\nEXIBINDO ARVORE\n");
-            exibirArvore(arvore);
-            listaPontilhado = formarPontilhado(lista, arvore);
-        	printf ("\nEXIBINDO LISTA PONTILHADO\n");
-            exibirListaAdjacencia(listaPontilhado);
-            buscaProfundidadeArticulacao(arvore, listaPontilhado, visitados, qtdeVertices);
-            break;
-            case 'B':
-            clrscr();
-            exibirListaAdjacencia(lista);
-            break;
-            
+            case 'A':{
+                //formar a estrutura
+                formarVetorVisitadosZerado(visitados, lista, &qtdeVertices);
+                formarArvore(lista, &arvore, visitados, qtdeVertices);
+                listaPontilhado = formarPontilhado(lista, arvore);
+                printf("Estruturas formadas!\n");
+                continuar();
+
+                break;
+            }
+            case 'B':{
+                system("cls");//clrscr();
+                printf ("\nEXIBINDO LISTA ADJACENCIA\n");
+                exibirListaAdjacencia(lista);
+                printf ("\nEXIBINDO ARVORE\n");
+                exibirArvore(arvore);
+                printf ("\nEXIBINDO LISTA PONTILHADO\n");
+                exibirListaAdjacencia(listaPontilhado);
+                continuar();
+
+                break;
+            }
+            case 'C':{
+                for(int i=0; i<50; i++)
+                    visitados[i] = NULL;
+                formarVetorVisitadosZerado(visitados, lista, &qtdeVertices);
+                ordem = 1;
+                buscaArticulacao(NULL, arvore, lista, listaPontilhado, visitados, &ordem, '\0', qtdeVertices);
+                continuar();
+
+                break;
+            }
         }
 
     }while(op != 27);
-
 }
+
 int main(void)
 {
     executar();

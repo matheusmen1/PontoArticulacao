@@ -82,20 +82,21 @@ void inserirListaPeso(ListaAdjacencia**lista, char origem, char vertice, int pes
 	}
 }
 
-
 //PILHA =--------------------------------------------------------------------------------
 struct pilha{
 	
 	ListaAdjacencia *no;
 	char pai;
 	struct pilha *prox;
-	
+
 };
 typedef struct pilha Pilha;
+
 void init(Pilha **p)
 {
 	*p = NULL;
 }
+
 void push(Pilha **p, ListaAdjacencia *no, char pai)
 {
 	Pilha *NC;
@@ -112,6 +113,7 @@ void push(Pilha **p, ListaAdjacencia *no, char pai)
 	} 
 	
 }
+
 void pop(Pilha **P, ListaAdjacencia **x, char *pai)
 {
 	
@@ -123,8 +125,8 @@ void pop(Pilha **P, ListaAdjacencia **x, char *pai)
 	free(aux);
 	
 }
+
 char isEmpty(Pilha *p){
 	
 	return p == NULL;
 }
-
